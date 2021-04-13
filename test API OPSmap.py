@@ -3,11 +3,28 @@ from OSMPythonTools.nominatim import Nominatim
 from OSMPythonTools.overpass import overpassQueryBuilder, Overpass
 import numpy as np
 
+
+class IWW:
+    """
+    A class just to simplify the use of 3-uplets, object way, distance point-crossing point, and crossing coords
+    """
+    def __init__(self, way_object, distance_to_main_point,  crossing_coords):
+        self.obj = way_object
+        self.dtm = distance_to_main_point
+        self.cc = crossing_coords
+
+
 def geo_to_address(lat, long):
+    """
+    Return the address corresponding to a point
+    """
     return Nominatim().query(lat, long, reverse=True, zoom=20)
 
 
 def geo_to_way_info(lat, long):
+    """
+    Return some information corresponding to the way in wich the point is: bbox, id, name
+    """
     way = Nominatim().query(lat, long, reverse=True, zoom=17)
     JSON = way.toJSON()[0]
     name = JSON ['address']['road']
@@ -18,6 +35,12 @@ def geo_to_way_info(lat, long):
 
 
 def closest_point_on_way(first_line_list, second_line_list):
+    """
+    Return the coords of the point where the second line cross the first line
+    :param first_line_list: a list of tuples
+    :param second_line_list: a list of tuples
+    :return: a 2-d np-array
+    """
     if len(second_line_list) == 1:
         second_line_list = second_line_list[0]
 
@@ -44,17 +67,13 @@ def closest_point_on_way(first_line_list, second_line_list):
     return np.array([global_coords[1], global_coords[0]])
 
 
-
-
-class IWW:
-    def __init__(self, way_object, distance_to_main_road,  crossing_coords):
-        self.obj = way_object
-        self.dtm = distance_to_main_road
-        self.cc = crossing_coords
-
-
 def segment(long, lat):
-
+    """
+    Main function defining the segment in wich the point is
+    :param long: coords
+    :param lat: coords
+    :return: two way-objects such as our point is in between these two ways
+    """
     point = np.array([long, lat])
     bbox, id, name = geo_to_way_info(long, lat)
     query = overpassQueryBuilder(bbox=bbox, elementType=['way'], selector=['highway', 'name'], includeGeometry=True)
@@ -76,7 +95,6 @@ def segment(long, lat):
 
     for iww in IWW_list:
         if iww.obj.id() != id and iww.obj != result1.obj:
-
             if np.dot(result1.cc-point, iww.cc-point) < 0:
                 result2 = iww
                 break
