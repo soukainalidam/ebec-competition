@@ -3,6 +3,8 @@ from OSMPythonTools.nominatim import Nominatim
 from OSMPythonTools.overpass import overpassQueryBuilder, Overpass
 import numpy as np
 
+ltree = [np.array([43.60146784122481, 1.4419696626057792]), np.array([43.601733940239484, 1.4413447078974355]), np.array([43.601963134067844, 1.4416021999661093]), np.array([43.60183, 1.4416]),
+         np.array([43.6017009207177, 1.4417711791361765]), np.array([43.60189321061956, 1.4410603937382749]), np.array([43.60178444064956, 1.4409691986306195]), np.array([43.60187, 1.44163])]
 
 class IWW:
     """
@@ -114,22 +116,21 @@ def segment(long, lat):
             bool_add = not(bool_add)
         if bool_add:
             new_geometry.append(point)
+    closet_road_geom = []
+    for x in closet_road.geometry()["coordinates"]:
+        closet_road_geom.append(np.array([x[1],x[0]]))
 
-    return result1, result2, new_geometry
-
-
-
-ltree = [np.array([43.60146784122481, 1.4419696626057792]), np.array([43.601733940239484, 1.4413447078974355]), np.array([43.601963134067844, 1.4416021999661093]),
-         np.array([43.6017009207177, 1.4417711791361765]), np.array([43.60189321061956, 1.4410603937382749]), np.array([43.60178444064956, 1.4409691986306195])]
+    return result1, result2, new_geometry, closet_road_geom
 
 
-def obj2_knowing_trees_of_way(list_tree, way, main_tree, result1, result2):
 
-    main_tree = np.array(main_tree)
+def obj2_knowing_trees_of_way(list_tree, newgeom, result1, result2):
+
+
     temp_ltree_of_point = []
     for tree in list_tree:
         min = - 1
-        for point in way:
+        for point in newgeom:
             dist = np.linalg.norm(tree-point)
             if dist < min or min == -1:
                 min = dist
@@ -137,7 +138,7 @@ def obj2_knowing_trees_of_way(list_tree, way, main_tree, result1, result2):
         temp_ltree_of_point.append((tree, associated_point))
 
     ltree_of_point = []
-    for pointw in way:
+    for pointw in newgeom:
         ltree_of_point.append(WayP(pointw, [], None))
     for x in ltree_of_point:
         for tuple in temp_ltree_of_point:
@@ -151,29 +152,98 @@ def obj2_knowing_trees_of_way(list_tree, way, main_tree, result1, result2):
         else:
             ltree_of_point[i].uv = ltree_of_point[i-1].uv
 
-    for obj in ltree_of_point: #here select only bissectrice
-        for i in range(0, len(obj.ltree)):
-            tree = obj.ltree[i][0]
-            obj.ltree[i][1] = np.dot(obj.uv, tree-obj.c)
-        obj.ltree.sort(key=lambda x: x[1])
+    for i in range(0, len(ltree_of_point)):
+        obj = ltree_of_point[i]
+        biss_vect = None
+        if i < len(ltree_of_point)-1 and i > 1:
+            biss_vect = ltree_of_point[i].uv - ltree_of_point[i-1].uv
+            orth_biss = np.array([biss_vect[1], -biss_vect[0]])
 
-    c = 0
+        if biss_vect is None: #sur les extremités on fait pas de bissectrice
+            for j in range(0, len(obj.ltree)):
+                tree = obj.ltree[j][0]
+                obj.ltree[j][1] = np.dot(obj.uv, tree-obj.c)
+            obj.ltree.sort(key=lambda x: x[1])
+
+        else: #sinon bissectrice etc
+            one_side = []
+            another_side = []
+            for j in range(0, len(obj.ltree)):
+                if np.dot(orth_biss, obj.ltree[j][0]-obj.c) > 0:
+                    one_side.append(obj.ltree[j])
+                else:
+                    another_side.append(obj.ltree[j])
+            if np.dot(orth_biss, obj.uv) > 0:
+                for tree in one_side:
+                    tree[1] = np.dot(ltree_of_point[i].uv, tree[0]-ltree_of_point[i].c)
+                for tree in another_side:
+                    tree[1] = np.dot(ltree_of_point[i-1].uv, tree[0] - ltree_of_point[i-1].c)
+            else:
+                for tree in one_side:
+                    tree[1] = np.dot(ltree_of_point[i-1].uv, tree[0]-ltree_of_point[i-1].c)
+                for tree in another_side:
+                    tree[1] = np.dot(ltree_of_point[i].uv, tree[0] - ltree_of_point[i].c)
+
+            one_side.sort(key=lambda x: x[1])
+            another_side.sort(key=lambda x: x[1])
+
+            if np.dot(orth_biss, obj.uv) > 0:
+                obj.ltree = another_side + one_side
+            else:
+                obj.ltree = one_side + another_side
+
+
+    sorted_tree_list = []
     for x in ltree_of_point:
         for tree in x.ltree:
-            c = c + 1
-            if np.array_equal(tree[0], main_tree):
-                print(str(c)+ 'eme tree en partant de ')
 
-    if np.array_equal(way[0], result1.cc):
-        print(result1.obj.tags()['name'])
+            sorted_tree_list.append(tree[0])
+
+    if np.array_equal(newgeom[0], result1.cc):
+        origin = result1
     else:
-        print(result2.obj.tags()['name'])
+        origin = result2
+
+    return sorted_tree_list, origin
+
+def obj2_knowing_every_trees(list_tree, way_id, new_geom, result1, result2):
+    true_list = []
+    for tree in list_tree:
+        way = Nominatim().query(tree[0], tree[1], reverse=True, zoom=17)
+        id = way.toJSON()[0]["osm_id"]
+        if id == way_id:
+            true_list.append(tree)
+    obj2_knowing_trees_of_way(true_list, new_geom, result1, result2)
+
+def obj3(tree1, tree2):
+
+    start1, end1, new_geom1, old_geom = segment(tree1[0], tree1[1])
+    start2, end2, new_geom2, old_geom = segment(tree2[0], tree2[1])
+    print(old_geom)
+    l_seg = [start1, start2, end1, end2]
+    for x in l_seg:
+        print(x.cc)
+    for point in old_geom:
+        for iww in l_seg:
+            if np.array_equal(iww.cc, point):
+                if len(l_seg) == 1:
+                    main_end = iww
+                elif len(l_seg) in [2, 3]:
+                    l_seg.remove(iww)
+                elif len(l_seg) == 4:
+                    main_start = iww
+                    l_seg.remove(iww)
+
+    print(len(l_seg))
+
+    return main_start, main_end
 
 
 
 
 
 
-result1, result2, new_geometry = segment(43.60186173065864, 1.4415735545641217)
+obj3(np.array([48.897121406, 2.2479852324]), np.array([48.89627806,2.248657510]))
 
-obj2_knowing_trees_of_way(ltree, new_geometry, (43.60189321061956, 1.4410603937382749), result1, result2)
+
+
