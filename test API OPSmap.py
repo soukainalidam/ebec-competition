@@ -23,6 +23,7 @@ class WayP:
         self.uv = unit_vector
 
 
+
 def geo_to_address(lat, long):
     """
     Return the address corresponding to a point
@@ -215,24 +216,48 @@ def obj2_knowing_every_trees(list_tree, way_id, new_geom, result1, result2):
             true_list.append(tree)
     obj2_knowing_trees_of_way(true_list, new_geom, result1, result2)
 
+class Pws:
+    def __init__(self, point, l_seg):
+        self.c = point
+        self.l_seg = l_seg
+
+
+
+
+
 def obj3(tree1, tree2):
 
     start1, end1, new_geom1, old_geom = segment(tree1[0], tree1[1])
     start2, end2, new_geom2, old_geom = segment(tree2[0], tree2[1])
-    print(old_geom)
+
     l_seg = [start1, start2, end1, end2]
-    for x in l_seg:
-        print(x.cc)
+    temp = []
+    for iww in l_seg:
+        min = -1
+        for point in old_geom:
+            dist = np.linalg.norm(iww.cc-point)
+            if min == -1 or dist < min:
+                min = dist
+                associated_point = point
+        temp.append([iww, associated_point])
+
+    PwS_list = []
     for point in old_geom:
-        for iww in l_seg:
-            if np.array_equal(iww.cc, point):
-                if len(l_seg) == 1:
-                    main_end = iww
-                elif len(l_seg) in [2, 3]:
-                    l_seg.remove(iww)
-                elif len(l_seg) == 4:
-                    main_start = iww
-                    l_seg.remove(iww)
+        l = []
+        for x in temp:
+            if np.array_equal(x[1], point):
+                l.append(x[0])
+        PwS_list.append(Pws(point, l))
+
+
+    for PwS in PwS_list:
+        for seg in PwS.l_seg:
+            if len(l_seg) == 1:
+                main_end = seg
+            if len(l_seg) == 4:
+                main_start = seg
+
+            l_seg.remove(seg)
 
     print(len(l_seg))
 
@@ -243,7 +268,9 @@ def obj3(tree1, tree2):
 
 
 
-obj3(np.array([48.897121406, 2.2479852324]), np.array([48.89627806,2.248657510]))
+start, end = obj3(np.array([48.897121406, 2.2479852324]), np.array([48.89627806,2.248657510]))
+print(start.obj.tags()['name'])
+print(end.obj.tags()['name'])
 
 
 
