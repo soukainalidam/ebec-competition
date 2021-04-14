@@ -6,12 +6,19 @@ import numpy as np
 
 class IWW:
     """
+    InWayWay
     A class just to simplify the use of 3-uplets, object way, distance point-crossing point, and crossing coords
     """
     def __init__(self, way_object, distance_to_main_point,  crossing_coords):
         self.obj = way_object
         self.dtm = distance_to_main_point
         self.cc = crossing_coords
+
+class WayP:
+    def __init__(self, coords, ltree, unit_vector):
+        self.c = coords
+        self.ltree = ltree
+        self.uv = unit_vector
 
 
 def geo_to_address(lat, long):
@@ -78,13 +85,13 @@ def segment(long, lat):
     bbox, id, name = geo_to_way_info(long, lat)
     query = overpassQueryBuilder(bbox=bbox, elementType=['way'], selector=['highway', 'name'], includeGeometry=True)
     result = Overpass().query(query)
+
     for x in result.elements():
         if x.id() == id:
             closet_road = x
 
     IWW_list = []
     for x in result.elements():
-        print(x.tags()['name'])
         if x.id() != id and x.tags()['name'] != name:
             cc = closest_point_on_way(closet_road.geometry()["coordinates"], x.geometry()["coordinates"])
             dtm = np.linalg.norm(point-cc)
@@ -94,12 +101,79 @@ def segment(long, lat):
     result1 = IWW_list[0]
 
     for iww in IWW_list:
-        if iww.obj.id() != id and iww.obj != result1.obj:
+        if iww.obj != result1.obj:
             if np.dot(result1.cc-point, iww.cc-point) < 0:
                 result2 = iww
                 break
-    print(result1.obj.tags(), result2.obj.tags())
+
+    new_geometry = []
+    bool_add = False
+    for point in closet_road.geometry()["coordinates"]:
+        point = np.array([point[1], point[0]])
+        if  np.array_equal(point, result1.cc) or np.array_equal(point, result2.cc):
+            bool_add = not(bool_add)
+        if bool_add:
+            new_geometry.append(point)
+
+    return result1, result2, new_geometry
 
 
-segment(43.60160410486647, 1.4505549320362405)
 
+ltree = [np.array([43.60146784122481, 1.4419696626057792]), np.array([43.601733940239484, 1.4413447078974355]), np.array([43.601963134067844, 1.4416021999661093]),
+         np.array([43.6017009207177, 1.4417711791361765]), np.array([43.60189321061956, 1.4410603937382749]), np.array([43.60178444064956, 1.4409691986306195])]
+
+
+def obj2_knowing_trees_of_way(list_tree, way, main_tree, result1, result2):
+
+    main_tree = np.array(main_tree)
+    temp_ltree_of_point = []
+    for tree in list_tree:
+        min = - 1
+        for point in way:
+            dist = np.linalg.norm(tree-point)
+            if dist < min or min == -1:
+                min = dist
+                associated_point = point
+        temp_ltree_of_point.append((tree, associated_point))
+
+    ltree_of_point = []
+    for pointw in way:
+        ltree_of_point.append(WayP(pointw, [], None))
+    for x in ltree_of_point:
+        for tuple in temp_ltree_of_point:
+            if np.array_equal(tuple[1], x.c):
+                x.ltree.append([tuple[0],0])
+
+
+    for i in range(0, len(ltree_of_point)):
+        if i < len(ltree_of_point)-1:
+            ltree_of_point[i].uv = (ltree_of_point[i+1].c - ltree_of_point[i].c)/np.linalg.norm((ltree_of_point[i+1].c - ltree_of_point[i].c))
+        else:
+            ltree_of_point[i].uv = ltree_of_point[i-1].uv
+
+    for obj in ltree_of_point: #here select only bissectrice
+        for i in range(0, len(obj.ltree)):
+            tree = obj.ltree[i][0]
+            obj.ltree[i][1] = np.dot(obj.uv, tree-obj.c)
+        obj.ltree.sort(key=lambda x: x[1])
+
+    c = 0
+    for x in ltree_of_point:
+        for tree in x.ltree:
+            c = c + 1
+            if np.array_equal(tree[0], main_tree):
+                print(str(c)+ 'eme tree en partant de ')
+
+    if np.array_equal(way[0], result1.cc):
+        print(result1.obj.tags()['name'])
+    else:
+        print(result2.obj.tags()['name'])
+
+
+
+
+
+
+result1, result2, new_geometry = segment(43.60186173065864, 1.4415735545641217)
+
+obj2_knowing_trees_of_way(ltree, new_geometry, (43.60189321061956, 1.4410603937382749), result1, result2)
