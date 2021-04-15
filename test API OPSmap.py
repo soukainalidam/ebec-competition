@@ -124,7 +124,6 @@ def segment(long, lat):
     return result1, result2, new_geometry, closet_road_geom
 
 
-
 def obj2_knowing_trees_of_way(list_tree, newgeom, result1, result2):
 
 
@@ -197,7 +196,6 @@ def obj2_knowing_trees_of_way(list_tree, newgeom, result1, result2):
     sorted_tree_list = []
     for x in ltree_of_point:
         for tree in x.ltree:
-
             sorted_tree_list.append(tree[0])
 
     if np.array_equal(newgeom[0], result1.cc):
@@ -206,6 +204,7 @@ def obj2_knowing_trees_of_way(list_tree, newgeom, result1, result2):
         origin = result2
 
     return sorted_tree_list, origin
+
 
 def obj2_knowing_every_trees(list_tree, way_id, new_geom, result1, result2):
     true_list = []
@@ -216,13 +215,11 @@ def obj2_knowing_every_trees(list_tree, way_id, new_geom, result1, result2):
             true_list.append(tree)
     obj2_knowing_trees_of_way(true_list, new_geom, result1, result2)
 
+
 class Pws:
     def __init__(self, point, l_seg):
         self.c = point
         self.l_seg = l_seg
-
-
-
 
 
 def obj3(tree1, tree2):
@@ -264,8 +261,8 @@ def obj3(tree1, tree2):
     return main_start, main_end
 
 
-
-
+result1, result2, new, old = segment(43.6017009207177, 1.4417711791361765)
+print(obj2_knowing_trees_of_way(ltree, new, result1, result2))
 
 segment(48.897121406, 2.2479852324)
 start, end = obj3(np.array([48.897121406, 2.2479852324]), np.array([48.89627806,2.248657510]))
