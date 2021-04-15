@@ -269,10 +269,16 @@ print("testing data for obj0:")
 obj0_inputs = np.genfromtxt('obj0.csv',delimiter=',')
 for r in obj0_inputs:
     lat, long = r[0], r[1]
-    print(geo_to_address(lat, long).address()['town'], ', ', geo_to_address(lat, long).address()['road'])
+    add = geo_to_address(lat, long).address()
+    print('LAT:', lat, 'LNG:', long, 'ville:', add['town'], ',Nom de la voie:', add['road'])
 
 print("testing data for obj1:")
-
+# data stored in the csv are: lat,lng  of csv type.
+obj1_inputs = np.genfromtxt('obj1.csv',delimiter=',')
+for r in obj1_inputs:
+    lat, long = r[0], r[1]
+    seg = segment(long, lat)
+    print(seg)
 
 
 start, end = obj3(np.array([48.897121406, 2.2479852324]), np.array([48.89627806,2.248657510]))
