@@ -267,7 +267,7 @@ def obj3(tree1, tree2):
 
 
 
-
+segment(48.897121406, 2.2479852324)
 start, end = obj3(np.array([48.897121406, 2.2479852324]), np.array([48.89627806,2.248657510]))
 print(start.obj.tags()['name'])
 print(end.obj.tags()['name'])
