@@ -29,10 +29,10 @@ def segment(lat, long):
             dtm = np.linalg.norm(point-cc)
             IWW_list.append(IWW(x, dtm, cc))
 
-    IWW_list.sort(key=lambda x: x.dtm)
-    result1 = IWW_list[0]
+    IWW_list.sort(key=lambda x: x.dtm) #sorting the crossing road by distance crossing-point to center of interest
+    result1 = IWW_list[0] #first segmentation is done by the closest crossing road
 
-    for iww in IWW_list:
+    for iww in IWW_list: #second one is done by the closest crossing road having the dot product negative (please refer to the presentation)
         if iww.obj != result1.obj:
             if np.dot(result1.cc-point, iww.cc-point) < 0:
                 result2 = iww
@@ -40,7 +40,7 @@ def segment(lat, long):
 
     new_geometry = []
     bool_add = False
-    for point in closet_road.geometry()["coordinates"]:
+    for point in closet_road.geometry()["coordinates"]: #we compute the geometry of the segmented road, usefull for next objectives
         point = np.array([point[1], point[0]])
         if  np.array_equal(point, result1.cc) or np.array_equal(point, result2.cc):
             bool_add = not(bool_add)
@@ -60,4 +60,7 @@ def main(lat, long):
     return "Entre " + result1.obj.tags()['name'] + " et " + result2.obj.tags()['name']
 
 if __name__ == '__main__':
-    main(48.89525193, 2.247122897)
+
+    lat = 48.89525193
+    long = 2.247122897
+    main(lat, long)

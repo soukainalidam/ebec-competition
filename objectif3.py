@@ -11,9 +11,9 @@ def obj3(tree1, tree2):
     start2, end2, new_geom2, old_geom = segment(tree2[0], tree2[1])
 
     l_seg = [start1, start2, end1, end2]
-    temp = []
-    for iww in l_seg:
-        min = -1
+    temp = []               #now, we just attribute to each crossing point between a segment and the road
+    for iww in l_seg:       #a point on the road (because theses crossing point aren't on the road they are only
+        min = -1            #the closest point of the segment to the road
         for point in old_geom:
             dist = np.linalg.norm(iww.cc-point)
             if min == -1 or dist < min:
@@ -30,8 +30,8 @@ def obj3(tree1, tree2):
         PwS_list.append(Pws(point, l))
 
 
-    for PwS in PwS_list:
-        for seg in PwS.l_seg:
+    for PwS in PwS_list:        #when 4 segments are remaining and we meet one, it's the start of our segment
+        for seg in PwS.l_seg:   #when 1 segment is remaining and we meet him, it's the last one
             if len(l_seg) == 1:
                 main_end = seg
             if len(l_seg) == 4:
@@ -56,4 +56,9 @@ def main(lat1, long1, lat2, long2):
 
 
 if __name__ == '__main__':
-    print(main(48.897121406, 2.2479852324, 48.89627806,2.248657510))
+
+    lat1 = 48.897121406
+    long1 = 2.2479852324
+    lat2 = 48.89627806
+    long2 =2.248657510
+    print(main(lat1, long1, lat2, long2))

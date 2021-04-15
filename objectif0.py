@@ -16,6 +16,9 @@ def main(lat, long):
     address = query.toJSON()[0]['address']
     return "A " + address['town'] + " , " + address['road']
 
+if __name__ == '__main__':
 
-print(main(48.897121406, 2.2479852324))
+    lat = 48.897121406
+    long = 2.2479852324
+    print(main(lat, long))
 

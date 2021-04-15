@@ -16,6 +16,9 @@ class IWW:
 
 
 class WayP:
+    """
+    Same for geometry point, simplify 3-uplets
+    """
     def __init__(self, coords, ltree, unit_vector):
         self.c = coords
         self.ltree = ltree
@@ -23,6 +26,9 @@ class WayP:
 
 
 class Pws:
+    """
+    Same for 2-uplet
+    """
     def __init__(self, point, l_seg):
         self.c = point
         self.l_seg = l_seg

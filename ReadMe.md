@@ -38,7 +38,9 @@ We now have 4 roads and their intersection with the main road.
 We go through the main road and the first intersection point that we meet corresponds to the start of our main segment.
 The last one corresponds to the end of our main segment.
 
+## Uses
 
+For each objectives, put your entries in the if
 ## The Green Team
 
 Bashir Abdel Wahed,
