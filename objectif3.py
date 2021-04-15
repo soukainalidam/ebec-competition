@@ -44,6 +44,11 @@ def obj3(tree1, tree2):
 
 
 def main(lat1, long1, lat2, long2):
+    """
+
+    :param 4 float = 2 geocodes
+    :return: the main segment
+    """
     one_tree = np.array([lat2, long2])
     another_tree = np.array([lat1, long1])
     start, end = obj3(one_tree, another_tree)

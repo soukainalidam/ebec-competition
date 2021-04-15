@@ -99,7 +99,10 @@ def obj2_knowing_every_trees(list_tree, way_id, new_geom, result1, result2):
 
 
 def main(ltree):
-
+    """
+    :param ltree: LIST OF 2-UPLETS (2d np-array in the best case)
+    :return: each tree numbered, and the starting way
+    """
     first_tree = np.array(ltree[3])
     result1, result2, new_geom, old_geom = segment(first_tree[0], first_tree[1])
     sorted_list, origin = obj2_knowing_trees_of_way(ltree, new_geom, result1, result2)
