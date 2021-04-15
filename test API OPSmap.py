@@ -35,7 +35,7 @@ def geo_to_way_info(lat, long):
     """
     Return some information corresponding to the way in wich the point is: bbox, id, name
     """
-    way = Nominatim().query(lat, long, reverse=True, zoom=17)
+    way = Nominatim().query(lat, long, reverse=True, zoom=18)
     JSON = way.toJSON()[0]
     name = JSON ['address']['road']
     bbox = JSON["boundingbox"]
@@ -264,7 +264,14 @@ def obj3(tree1, tree2):
     return main_start, main_end
 
 
+print("testing data for obj0:")
+# data stored in the csv are: lat,lng  of csv type.
+obj0_inputs = np.genfromtxt('obj0.csv',delimiter=',')
+for r in obj0_inputs:
+    lat, long = r[0], r[1]
+    print(geo_to_address(lat, long).address()['town'], ', ', geo_to_address(lat, long).address()['road'])
 
+print("testing data for obj1:")
 
 
 
