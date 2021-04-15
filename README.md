@@ -40,7 +40,8 @@ The last one corresponds to the end of our main segment.
 
 ## Uses
 
-For each objectives, put your entries in the if
+For each objectives, put your entries in the variables at the end of the objectifX.py (in if name==main) file and run it
+
 ## The Green Team
 
 Bashir Abdel Wahed,
