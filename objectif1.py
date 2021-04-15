@@ -63,4 +63,4 @@ if __name__ == '__main__':
 
     lat = 48.89525193
     long = 2.247122897
-    main(lat, long)
+    print(main(lat, long))
